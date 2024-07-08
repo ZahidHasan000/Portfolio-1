@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
+const path = require('path');
+
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -20,6 +22,12 @@ app.use(cookieParser());
 
 app.use("/api/v1", userRouter);
 
+//Serving static files
+app.use(express.static(path.join(__dirname, '/frontend/build')));
+
+//render e-comerce-frontend for any path
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, '/frontend/build/index.html')))
+
 const DB = process.env.DATABASE;
 mongoose
   .connect(DB, {
@@ -33,6 +41,15 @@ cloudinary.v2.config({
   api_key: process.env.CLOUD_API_KEY,
   api_secret: process.env.CLOUD_API_SECRET
 });
+
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path')
+
+  app.get('/', (req, res) => {
+    app.use(express.static(path.resolve(__dirname, 'frontend', 'build')))
+    res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'))
+  })
+}
 
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
